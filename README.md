@@ -119,7 +119,8 @@ sysbench /usr/sysbench/share/sysbench/oltp_read_write.lua    --table-size=100000
 
     
 ### 4-2 run (oltp_read_write.lua)
-테스트는 thread를 64, 100, 200, 300, 500 으로 변경하며 테스트 진행
+테스트는 thread를 64, 100, 200, 300, 500 으로 변경하며 테스트 진행  
+  
 sysbench /usr/sysbench/share/sysbench/oltp_read_write.lua    --table-size=1000000   --tables=5  --time=100   --report-interval=10  --rand-type=uniform --db-driver=mysql   --mysql-host=<8.0 또는 8.4서버IP>  --mysql-user='테스트사용자'   --mysql-password='비밀번호'   --mysql-port=3306 --mysql-db=<테스트db명>  --threads=thread수  run  
 
 
