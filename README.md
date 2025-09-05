@@ -9,15 +9,21 @@ Compare mysql 8.0 to mysql 8.4 with Thread Pool
 OS : OL 8.10  
 CPU : ocpu 4   
 Memory : 32 GB  
+mysql version : 8.0.42-commercial MySQL Enterprise Server
+
+  
 ### MySQL 8.4 테스트 환경
 OS : OL 9.6  
 CPU : ocpu 4   
 Memory : 32 GB  
+mysql version :  8.4.5-commercial MySQL Enterprise Server
 
 
 ## 1.테스트 결과
-아래 차트에서 보듯이 테스트환경이 열악했음에도 불구하고 8.4의 성능이 16% 정도 높게 나옴. 고객사의 
- <img width="1014" height="990" alt="image" src="https://github.com/user-attachments/assets/7740108e-e8ca-47a4-b811-d804b4bffb2b" />
+결과부터 먼저 공유하자면 아래 차트에서 보듯이 테스트환경이 열악했음에도 불구하고 **8.4의 성능이 16% 정도 높게 나옴**. 고객사의 256 GB 메모리 64 core 환경에서는 **2배정도 높게** 결과가 나왔다고 전달받음. 사실 이번 테스트는 고객사지원을 위해서 진행한 건입니다.  
+8.0 사용하고 계신 분들은 **내년 4월이면 mysql 8.0이 EOL되기때문에** 8.4로 업그레이드 하실 것을 권장합니다!!  
+
+ <img width="507" height="445" alt="image" src="https://github.com/user-attachments/assets/7740108e-e8ca-47a4-b811-d804b4bffb2b" />
 
 
 ## 1.sysbench 설치
@@ -25,17 +31,65 @@ Memory : 32 GB
 https://github.com/sumicanvas/installsysbench
 
 ## 2.주요 mysql 설정 
-8.0과 8.4 를 최대한 동일하게 설정했지만 버전 상 변경된 부분의 경우 반영해서 테스트함  
+8.0과 8.4 를 최대한 동일하게 설정했지만 버전 상 기본값 등이 변경된 부분의 경우 반영해서 테스트함  
+
+### 8.0 my.cnf  
+innodb_dedicated_server=ON 을 한 경우 innodb redo log 사이즈가 커질 수 있다는 걸 감안해야 합니다.  
+이 테스트 환경에서 redo log 관련 변수를 설정하지 않았을 때 18G까지 커지는 걸 확인했기때문에 가능하면 버전에 따라 innodb_redo_log_capacity 또는 innodb_log_files_in_group, innodb_log_file_size 값을 설정해 주기를 권장함.
+**아래는 이번 테스트환경의 파라미터 예시이며 각자 환경에 따라 모든 파라미터는 조정되어야 함. 이번 테스트를 진행한 vm의 경우 스펙이 낮아서, 운영환경인 경우 각 서버의 cpu, memory에 따라 해당 값들은 반드시 튜닝되어야 함.**
+```
+[mysqld]  
+innodb_dedicated_server=ON  
+max-connections=2000  
+  
+innodb_buffer_pool_size=8G  
+innodb_buffer_pool_instances=16  
+innodb_page_cleaners=16  
+innodb_flush_method=O_DIRECT  
+innodb_io_capacity=10000  
+innodb_io_capacity_max=20000  
+  
+innodb_read_io_threads = 8  
+innodb_write_io_threads = 4  
+innodb_log_files_in_group=2
+innodb_log_file_size=256M 
+  
+# Plugin load (MySQL Enterprise ThreadPool)  
+plugin-load-add=thread_pool.so  
+thread_pool_size=16  
+thread_pool_algorithm=1  
+thread_pool_max_transactions_limit=512  
+thread_pool_query_threads_per_group = 2  
+thread_pool_stall_limit=6
+
+```
 
 ### 8.4 my.cnf
-'''
+
+```
 [mysqld]  
-innodb_dedicated_server=ON #8.4부터 기본적으로 활성화되어 있으며, 서버 메모리를 기반으로 innodb_buffer_pool_size, innodb_redo_log_capacity를 자동으로 계산
+innodb_dedicated_server=ON  #8.4부터 기본적으로 활성화되어 있으며, 서버 메모리를 기반으로 innodb_buffer_pool_size, innodb_redo_log_capacity를 자동으로 계산
 
 max-connections=2000  
+  
+innodb_buffer_pool_size=8G  
+innodb_buffer_pool_instances=16  
+innodb_page_cleaners=16    
+innodb_flush_method=O_DIRECT  
+innodb_io_capacity=10000  
+innodb_io_capacity_max=20000  
+  
+innodb_read_io_threads = 8  
+innodb_write_io_threads = 4  
+innodb_redo_log_capacity=1G  
+  
+# Plugin load (MySQL Enterprise ThreadPool)  
+plugin-load-add=thread_pool.so  
+thread_pool_size=16  
+thread_pool_algorithm=1  
+thread_pool_max_transactions_limit=512  
+thread_pool_query_threads_per_group = 2  
+thread_pool_stall_limit=6
 
-
-'''
-
-  <img width="1014" height="990" alt="image" src="https://github.com/user-attachments/assets/7740108e-e8ca-47a4-b811-d804b4bffb2b" />
+```
 
