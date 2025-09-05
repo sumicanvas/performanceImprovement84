@@ -5,6 +5,8 @@ Compare mysql 8.0 to mysql 8.4 with Thread Pool
 오라클 클라우드(OCI) VM 2 대에 각각 mysql 8.0과 8.4 버전을 설치하고 각 서버마다 sysbench를 설치해서 부하를 다른서버에 주도록 구성  
 단, VM을 처음 생성 시  1 core, 16 GB 메모리로 생성 후 이후 edit를 통해서 4 core, 32 GB로 증가해서,  **innodb buffer pool size 및 read thread/write thread 등의 값은 1 core, 16 GB 에 맞춰져 있음.**  
 
+### 테스트는 sysbench를 이용해서 진행하며 OLTP_READ_WRITE(oltp_read_write.lua)로 진행했습니다.
+
 ### MySQL 8.0 테스트 환경  
 OS : OL 8.10  
 CPU : ocpu 4   
@@ -92,4 +94,19 @@ thread_pool_query_threads_per_group = 2
 thread_pool_stall_limit=6
 
 ```
+  
+## 3. 테스트 사용자 생성
 
+
+## 4.sysbench 테스트 명령어
+### 4-1 prepare
+미리 테스트용 데이터베이스(ex.sysbench)를 생성해둬야 함
+sysbench /usr/sysbench/share/sysbench/oltp_read_write.lua    --table-size=100000   --tables=5  --time=100   --report-interval=10  --rand-type=uniform --db-driver=mysql   --mysql-host=<8.0 또는 8.4서버IP>   --mysql-user='테스트사용자'   --mysql-password='비밀번호'   --mysql-port=3306 --mysql-db=<테스트db명>  --threads=thread수  prepare
+
+    
+### 4-2 run (oltp_read_write.lua)
+테스트는 thread를 64, 100, 200, 300, 500 으로 변경하며 테스트 진행
+sysbench /usr/sysbench/share/sysbench/oltp_read_write.lua    --table-size=1000000   --tables=5  --time=100   --report-interval=10  --rand-type=uniform --db-driver=mysql   --mysql-host=<8.0 또는 8.4서버IP>  --mysql-user='테스트사용자'   --mysql-password='비밀번호'   --mysql-port=3306 --mysql-db=<테스트db명>  --threads=thread수  run  
+
+
+  
