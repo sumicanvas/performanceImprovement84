@@ -95,8 +95,22 @@ thread_pool_stall_limit=6
 
 ```
   
-## 3. 테스트 사용자 생성
+## 3. 테스트 사용자 생성 : 8.4에서 Thread Pool 을 함께 테스트할 경우 반드시 일반 사용자를 생성 후 테스트!!  
+**mysql 8.4** 에서 권한이 세분화되면서 변경된 사항이 있습니다. **root나 SUPPER 권한을 가진 사용자로 Thread Pool을 테스트하시면 안됩니다!**  
+root와 SUPPER 권한을 가진 사용자(ex.admin)의 경우 TP_CONNECTION_ADMIN privilege 를 가지기때문에 일정 수 이상으로 Active Thread가 생성되지 않아 성능이 제대로 나오지 않습니다.   
+8.4에서 변경된 부분으로 8.0 에서는 문제없이 동작됩니다. 하지만 가능한 application 사용자가 가져야 하는 권한을 부여한 일반사용자를 생성 후 사용하실 것을 권장합니다.  
+  
+```
+DROP USER '테스트용 일반사용자'@'%';
 
+CREATE USER '테스트용 일반사용자'@'%' IDENTIFIED WITH caching_sha2_password BY '비밀번호';
+
+GRANT SELECT, INSERT, DELETE, UPDATE, CREATE, DROP, PROCESS, USAGE, INDEX ON *.* TO '테스트용 일반사용자'@'%';
+GRANT SHOW DATABASES ON *.* TO '테스트용 일반사용자'@'%';
+
+-- Enforce SSL only connections (if required)
+ALTER USER '테스트용 일반사용자'@'%' REQUIRE SSL;  
+```
 
 ## 4.sysbench 테스트 명령어
 ### 4-1 prepare
