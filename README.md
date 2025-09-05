@@ -28,11 +28,11 @@ mysql version :  8.4.5-commercial MySQL Enterprise Server
  <img width="507" height="445" alt="image" src="https://github.com/user-attachments/assets/7740108e-e8ca-47a4-b811-d804b4bffb2b" />
 
 
-## 1.sysbench 설치
+## 2.sysbench 설치
 아래 링크의 설치방법 참고  
 https://github.com/sumicanvas/installsysbench
 
-## 2.주요 mysql 설정 
+## 3.주요 mysql 설정 
 8.0과 8.4 를 최대한 동일하게 설정했지만 버전 상 기본값 등이 변경된 부분의 경우 반영해서 테스트함  
 
 ### 8.0 my.cnf  
@@ -95,7 +95,7 @@ thread_pool_stall_limit=6
 
 ```
   
-## 3. 테스트 사용자 생성 : 8.4에서 Thread Pool 을 함께 테스트할 경우 반드시 일반 사용자를 생성 후 테스트!!  
+## 4. 테스트 사용자 생성 : 8.4에서 Thread Pool 을 함께 테스트할 경우 반드시 일반 사용자를 생성 후 테스트!!  
 **mysql 8.4** 에서 권한이 세분화되면서 변경된 사항이 있습니다. **root나 SUPPER 권한을 가진 사용자로 Thread Pool을 테스트하시면 안됩니다!**  
 root와 SUPPER 권한을 가진 사용자(ex.admin)의 경우 TP_CONNECTION_ADMIN privilege 를 가지기때문에 일정 수 이상으로 Active Thread가 생성되지 않아 성능이 제대로 나오지 않습니다.   
 8.4에서 변경된 부분으로 8.0 에서는 문제없이 동작됩니다. 하지만 가능한 application 사용자가 가져야 하는 권한을 부여한 일반사용자를 생성 후 사용하실 것을 권장합니다.  
@@ -112,14 +112,14 @@ GRANT SHOW DATABASES ON *.* TO '테스트용 일반사용자'@'%';
 ALTER USER '테스트용 일반사용자'@'%' REQUIRE SSL;  
 ```
 
-## 4.sysbench 테스트 명령어
-### 4-1 prepare
+## 5.sysbench 테스트 명령어
+### 5-1 prepare
 미리 테스트용 데이터베이스(ex.sysbench)를 생성해둬야 함  
   
 sysbench /usr/sysbench/share/sysbench/oltp_read_write.lua    --table-size=100000   --tables=5  --time=100   --report-interval=10  --rand-type=uniform --db-driver=mysql   --mysql-host=<8.0 또는 8.4서버IP>   --mysql-user='테스트사용자'   --mysql-password='비밀번호'   --mysql-port=3306 --mysql-db=<테스트db명>  --threads=thread수  prepare
 
     
-### 4-2 run (oltp_read_write.lua)
+### 5-2 run (oltp_read_write.lua)
 테스트는 thread를 64, 100, 200, 300, 500 으로 변경하며 테스트 진행  
   
 sysbench /usr/sysbench/share/sysbench/oltp_read_write.lua    --table-size=1000000   --tables=5  --time=100   --report-interval=10  --rand-type=uniform --db-driver=mysql   --mysql-host=<8.0 또는 8.4서버IP>  --mysql-user='테스트사용자'   --mysql-password='비밀번호'   --mysql-port=3306 --mysql-db=<테스트db명>  --threads=thread수  run  
