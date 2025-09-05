@@ -114,7 +114,8 @@ ALTER USER '테스트용 일반사용자'@'%' REQUIRE SSL;
 
 ## 4.sysbench 테스트 명령어
 ### 4-1 prepare
-미리 테스트용 데이터베이스(ex.sysbench)를 생성해둬야 함
+미리 테스트용 데이터베이스(ex.sysbench)를 생성해둬야 함  
+  
 sysbench /usr/sysbench/share/sysbench/oltp_read_write.lua    --table-size=100000   --tables=5  --time=100   --report-interval=10  --rand-type=uniform --db-driver=mysql   --mysql-host=<8.0 또는 8.4서버IP>   --mysql-user='테스트사용자'   --mysql-password='비밀번호'   --mysql-port=3306 --mysql-db=<테스트db명>  --threads=thread수  prepare
 
     
